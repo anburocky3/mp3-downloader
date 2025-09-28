@@ -28,19 +28,60 @@ def get_music_directors(scraper):
             })
     return directors
 
-def get_director_songs(scraper, director_url):
+def get_director_albums(scraper, director_url):
     base_url = "https://www.masstamilan.dev"
+    def get_movies_from_html(html):
+        soup = BeautifulSoup(html, "html.parser")
+        movies_divs = soup.find_all(class_="bots")
+        movies = []
+        for movie in movies_divs:
+            for a in movie.find_all("a", href=True):
+                if a.find_parent("nav") is None:
+                    title = None
+                    starring = None
+                    music = None
+                    director = None
+                    h2 = a.find("h2")
+                    if h2:
+                        title = h2.text.strip()
+                    p = a.find("p")
+                    if p:
+                        for b in p.find_all("b"):
+                            label = b.text.strip(": ")
+                            next_sibling = b.next_sibling
+                            if label == "Starring":
+                                starring = str(next_sibling).strip() if next_sibling else None
+                            elif label == "Music":
+                                music = str(next_sibling).strip() if next_sibling else None
+                            elif label == "Director":
+                                director = str(next_sibling).strip() if next_sibling else None
+                    movies.append({
+                        "title": title,
+                        "starring": starring,
+                        "music": music,
+                        "director": director,
+                        "url": a["href"]
+                    })
+        return movies
+
+    # Get first page
     full_url = base_url + director_url if not director_url.startswith("http") else director_url
     html = scraper.get_html(full_url)
+    all_movies = get_movies_from_html(html)
     soup = BeautifulSoup(html, "html.parser")
-    movie_links = soup.find_all("a", href=True)
-    movies = []
-    for a in movie_links:
-        href = a["href"]
-        if href.startswith("/") and "songs" in href:
-            movies.append({
-                "title": a.text.strip(),
-                "url": href
-            })
-    return movies
-
+    nav = soup.find("nav", class_="pagy nav")
+    page_urls = set()
+    if nav:
+        for a in nav.find_all("a", href=True):
+            page_url = a["href"]
+            if page_url.startswith("/"):
+                page_urls.add(base_url + page_url)
+            elif page_url.startswith("http"):
+                page_urls.add(page_url)
+    # Remove current page if present
+    page_urls.discard(full_url)
+    # Loop through all other pages
+    for page_url in sorted(page_urls):
+        html = scraper.get_html(page_url)
+        all_movies.extend(get_movies_from_html(html))
+    return all_movies

@@ -2,7 +2,8 @@ from rich.console import Console
 from rich.table import Table
 import readchar
 from scraper.album import get_trending_albums, download_album_songs
-from scraper.director import get_music_directors, get_director_songs
+from scraper.director import get_music_directors, get_director_albums
+import sys
 from scraper.download import download_song
 
 console = Console()
@@ -63,27 +64,56 @@ def select_tamil_option(scraper):
                         table.add_row(str(idx), director["name"], director["url"])
                     console.print(table)
                     console.print("[bold green]Enter director number to view albums or Esc to go back:[/bold green] ", end="")
-                    key2 = readchar.readkey()
-                    if key2 == readchar.key.ESC:
+                    try:
+                        input_str = console.input("[bold green]Your choice: [/bold green]")
+                    except KeyboardInterrupt:
+                        console.print("\n[bold magenta]Good bye![/bold magenta]")
+                        sys.exit(0)
+                    if input_str.lower() == 'esc':
                         return None
-                    if key2 in map(str, range(1, len(directors)+1)):
+                    if input_str.isdigit() and 1 <= int(input_str) <= len(directors):
+                        key2 = input_str
+                        console.print("[italic blue]Please wait while we fetch all the records... (May take time...)[/italic blue]")
                         director = directors[int(key2)-1]
-                        albums = get_director_songs(scraper, director["url"])
+                        albums = get_director_albums(scraper, director["url"])
                         if albums:
                             table = Table(title=f"Albums by {director['name']}", show_header=True, header_style="bold magenta")
                             table.add_column("No.", style="bold cyan")
                             table.add_column("Album", style="bold yellow")
                             table.add_column("URL", style="bold green")
                             for idx, album in enumerate(albums, 1):
-                                table.add_row(str(idx), album["title"], album["url"])
+                                album_title = f"[bold yellow][b][u]{album['title']}[/u][/b][/bold yellow]"
+                                album_details = f"[dim white]Starring: {album['starring'] or ''}\nMusic: {album['music'] or ''}\nDirector: {album['director'] or ''}[/dim white]"
+                                album_info = f"{album_title}\n{album_details}"
+                                table.add_row(str(idx), album_info, album["url"])
                             console.print(table)
-                            console.print("[bold green]Enter album number to download all songs or Esc to go back:[/bold green] ", end="")
-                            key3 = readchar.readkey()
-                            if key3 == readchar.key.ESC:
+                            console.print("[bold green]Enter album number(s) separated by comma to download, type 'all' to download all albums, or Esc to go back:[/bold green]")
+                            import sys
+                            try:
+                                input_str = console.input("[bold green]Your choice: [/bold green]")
+                            except KeyboardInterrupt:
+                                console.print("\n[bold magenta]Good bye![/bold magenta]")
+                                sys.exit(0)
+                            if input_str.lower() == 'esc':
+                                console.print("[bold magenta]Good bye![/bold magenta]")
                                 return None
-                            if key3 in map(str, range(1, len(albums)+1)):
-                                album = albums[int(key3)-1]
-                                download_album_songs(scraper, album["url"], album["title"])
+                            if input_str.lower() == 'all':
+                                selected_indices = list(range(1, len(albums)+1))
+                            else:
+                                selected_indices = []
+                                for part in input_str.split(','):
+                                    part = part.strip()
+                                    if part.isdigit():
+                                        idx = int(part)
+                                        if 1 <= idx <= len(albums):
+                                            selected_indices.append(idx)
+                            # Download selected albums inside director folder
+                            import os
+                            director_folder = os.path.join('downloaded', director['name'])
+                            os.makedirs(director_folder, exist_ok=True)
+                            for idx in selected_indices:
+                                album = albums[idx-1]
+                                download_album_songs(scraper, album["url"], album["title"], output_dir=director_folder)
                         else:
                             console.print("[bold red]No albums found for this director.[/bold red]")
                 else:
