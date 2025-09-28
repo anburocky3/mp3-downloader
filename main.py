@@ -1,13 +1,12 @@
-import os
-
 from rich.console import Console
 from scraper.PlaywrightScraper import PlaywrightScraper
 from ui.menu import select_language
+from ui.utils import clear_screen
 
 console = Console()
 
 def print_banner():
-    os.system('cls' if os.name == 'nt' else 'clear')
+    clear_screen()
     banner_lines = [
         ("#####  ######     #    ######  ######  ####### ######  ", "bold yellow"),
         ("#     # #     #   # #   #     # #     # #       #     # ", "bold bright_yellow"),

@@ -1,16 +1,20 @@
 from rich.console import Console
 from rich.table import Table
 import readchar
+
 from scraper.album import get_trending_albums, download_album_songs
 from scraper.director import get_music_directors, get_director_albums
 import sys
+from scraper.download import sanitize_filename
+
+from ui.utils import clear_screen
 
 console = Console()
 languages = [
-    ("Tamil", "https://www.masstamilan.dev/", "masstamilan.dev"),
-    ("Hindi", "https://mp3bhai.com/", "mp3bhai.com"),
-    ("Telugu", "https://masstelugu.com/", "masstelugu.com"),
-    ("Malayalam", "https://mp3chetta.com/", "mp3chetta.com"),
+    ("Tamil", "https://www.masstamilan.dev", "masstamilan.dev"),
+    ("Hindi", "https://mp3bhai.com", "mp3bhai.com"),
+    ("Telugu", "https://masstelugu.com", "masstelugu.com"),
+    ("Malayalam", "https://mp3chetta.com", "mp3chetta.com"),
 ]
 
 def select_ui_option(scraper, base_url):
@@ -19,6 +23,7 @@ def select_ui_option(scraper, base_url):
         ("Songs by Music Directors", "directors"),
     ]
     while True:
+        clear_screen()
         table = Table(title="How do you want to download?", show_header=True, header_style="bold magenta")
         table.add_column("No.", style="bold cyan")
         table.add_column("Option", style="bold yellow")
@@ -32,7 +37,10 @@ def select_ui_option(scraper, base_url):
             return None
         if key in map(str, range(1, len(tamil_options)+1)):
             selected = tamil_options[int(key)-1][1]
-            console.print(f"\n[bold blue]You selected: {tamil_options[int(key)-1][0]}[/bold blue], please wait...")
+            console.print(f"\n[bold blue]You selected: {tamil_options[int(key)-1][0]}[/bold blue], please wait...\n")
+
+            clear_screen()
+
             if selected == "trending":
                 albums = get_trending_albums(scraper, base_url)
                 if albums:
@@ -79,6 +87,7 @@ def select_ui_option(scraper, base_url):
                         director = directors[int(key2)-1]
                         albums = get_director_albums(scraper, director["url"], base_url=base_url)
                         if albums:
+                            # clear_screen()
                             table = Table(title=f"Albums by {director['name']}", show_header=True, header_style="bold magenta")
                             table.add_column("No.", style="bold cyan")
                             table.add_column("Album", style="bold yellow")
@@ -109,11 +118,12 @@ def select_ui_option(scraper, base_url):
                                         if 1 <= idx <= len(albums):
                                             selected_indices.append(idx)
                             import os
-                            director_folder = os.path.join('downloaded', director['name'])
+                            director_folder = os.path.join('downloaded', sanitize_filename(director['name']))
                             os.makedirs(director_folder, exist_ok=True)
                             for idx in selected_indices:
                                 album = albums[idx-1]
-                                download_album_songs(scraper, album["url"], album["title"], output_dir=director_folder, base_url=base_url)
+                                safe_album_title = sanitize_filename(album["title"])
+                                download_album_songs(scraper, album["url"], safe_album_title, output_dir=director_folder, base_url=base_url)
                         else:
                             console.print("[bold red]No albums found for this director.[/bold red]")
                 else:
@@ -139,7 +149,7 @@ def select_language(scraper):
             console.print("\n[bold red]Exiting...[/bold red]")
             break
         if key in map(str, range(1, len(languages)+1)):
-            lang, url = languages[int(key)-1]
+            lang, url, name = languages[int(key)-1]
             console.print(f"\n[bold blue] You selected {lang}. Opening platform: {url}[/bold blue]\n")
             if lang == "Tamil" or lang == "Telugu" or lang == "Hindi" or lang == "Malayalam":
                 select_ui_option(scraper, url)

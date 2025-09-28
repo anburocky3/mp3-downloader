@@ -4,6 +4,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich import box
 from rich.text import Text
+from scraper.download import sanitize_filename
 
 console = Console()
 
@@ -58,6 +59,7 @@ def download_album_songs(scraper, album_url, album_name, output_dir=None, base_u
         album_dir_name = f"{album_name} - ({album_year})"
     else:
         album_dir_name = album_name
+    album_dir_name = sanitize_filename(album_dir_name)
     if output_dir:
         album_dir = os.path.join(output_dir, album_dir_name)
     else:
@@ -69,6 +71,7 @@ def download_album_songs(scraper, album_url, album_name, output_dir=None, base_u
         # Track name
         name_tag = tr.find("span", itemprop="name")
         song_name = name_tag.get_text(strip=True) if name_tag else "Unknown"
+        song_name = sanitize_filename(song_name)
         # Download links
         dlinks = tr.find_all("a", class_="dlink")
         if dlinks:
