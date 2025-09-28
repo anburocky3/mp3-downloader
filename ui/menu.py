@@ -1,3 +1,4 @@
+from rich import box
 from rich.console import Console
 from rich.table import Table
 import readchar
@@ -19,16 +20,23 @@ languages = [
 
 def select_ui_option(scraper, base_url):
     tamil_options = [
-        ("Trending Songs", "trending"),
-        ("Songs by Music Directors", "directors"),
+        ("🎵 Trending Songs", "trending"),
+        ("🎤 Songs by Music Directors", "directors"),
     ]
     while True:
         clear_screen()
-        table = Table(title="How do you want to download?", show_header=True, header_style="bold magenta")
-        table.add_column("No.", style="bold cyan")
-        table.add_column("Option", style="bold yellow")
+        table = Table(
+            title="[bold magenta]How do you want to download?[/bold magenta]",
+            show_header=True,
+            header_style="bold magenta",
+            box=box.ROUNDED,
+            padding=(1, 2),
+            title_justify="center"
+        )
+        table.add_column("No.", style="bold cyan", justify="center", width=6)
+        table.add_column("Option", style="bold yellow", justify="left", width=40)
         for idx, (opt, _) in enumerate(tamil_options, 1):
-            table.add_row(str(idx), opt)
+            table.add_row(f"[bold green]{idx}[/bold green]", f"{opt}")
         console.clear()
         console.print(table)
         console.print("[bold green]Enter the number of your choice:[/bold green] ", end="")
@@ -38,18 +46,23 @@ def select_ui_option(scraper, base_url):
         if key in map(str, range(1, len(tamil_options)+1)):
             selected = tamil_options[int(key)-1][1]
             console.print(f"\n[bold blue]You selected: {tamil_options[int(key)-1][0]}[/bold blue], please wait...\n")
-
             clear_screen()
-
             if selected == "trending":
                 albums = get_trending_albums(scraper, base_url)
                 if albums:
-                    table = Table(title="Trending Albums", show_header=True, header_style="bold magenta")
-                    table.add_column("No.", style="bold cyan")
-                    table.add_column("Album", style="bold yellow")
-                    table.add_column("URL", style="bold green")
+                    table = Table(
+                        title="[bold magenta]:fire: Trending Albums :fire:[/bold magenta]",
+                        show_header=True,
+                        header_style="bold magenta",
+                        box=box.ROUNDED,
+                        padding=(1, 2),
+                        title_justify="center"
+                    )
+                    table.add_column("No.", style="bold cyan", justify="center", width=6)
+                    table.add_column(":cd: Album", style="bold yellow", justify="left", width=40)
+                    table.add_column(":link: URL", style="bold green", justify="left", width=40)
                     for idx, album in enumerate(albums, 1):
-                        table.add_row(str(idx), album["title"], album["url"])
+                        table.add_row(f"[bold green]{idx}[/bold green]", f"[bold yellow]{album['title']}[/bold yellow]", f"[dim]{album['url']}[/dim]")
                     console.print(table)
                     console.print("[bold green]Enter album number to download all songs or Esc to go back:[/bold green] \n", end="")
                     key2 = readchar.readkey()
@@ -66,12 +79,19 @@ def select_ui_option(scraper, base_url):
                     console.print("[bold red]Director data not available.[/bold red]")
                     return None
                 if directors:
-                    table = Table(title="Music Directors", show_header=True, header_style="bold magenta")
-                    table.add_column("No.", style="bold cyan")
-                    table.add_column("Director", style="bold yellow")
-                    table.add_column("URL", style="bold green")
+                    table = Table(
+                        title="[bold magenta]:star: Music Directors :star:[/bold magenta]",
+                        show_header=True,
+                        header_style="bold magenta",
+                        box=box.ROUNDED,
+                        padding=(1, 2),
+                        title_justify="center"
+                    )
+                    table.add_column("No.", style="bold cyan", justify="center", width=6)
+                    table.add_column(":man_artist: Director", style="bold yellow", justify="left", width=40)
+                    table.add_column(":link: URL", style="bold green", justify="left", width=40)
                     for idx, director in enumerate(directors, 1):
-                        table.add_row(str(idx), director["name"], director["url"])
+                        table.add_row(f"[bold green]{idx}[/bold green]", f"[bold yellow]{director['name']}[/bold yellow]", f"[dim]{director['url']}[/dim]")
                     console.print(table)
                     console.print("[bold green]Enter director number to view albums or Esc to go back:[/bold green] ", end="")
                     try:
@@ -87,16 +107,23 @@ def select_ui_option(scraper, base_url):
                         director = directors[int(key2)-1]
                         albums = get_director_albums(scraper, director["url"], base_url=base_url)
                         if albums:
-                            # clear_screen()
-                            table = Table(title=f"Albums by {director['name']}", show_header=True, header_style="bold magenta")
-                            table.add_column("No.", style="bold cyan")
-                            table.add_column("Album", style="bold yellow")
-                            table.add_column("URL", style="bold green")
+                            clear_screen()
+                            table = Table(
+                                title=f"[bold magenta]:musical_note: Albums by {director['name']} :musical_note:[/bold magenta]",
+                                show_header=True,
+                                header_style="bold magenta",
+                                box=box.ROUNDED,
+                                padding=(1, 2),
+                                title_justify="center"
+                            )
+                            table.add_column("No.", style="bold cyan", justify="center", width=6)
+                            table.add_column(":cd: Album", style="bold yellow", justify="left", width=40)
+                            table.add_column(":link: URL", style="bold green", justify="left", width=40)
                             for idx, album in enumerate(albums, 1):
                                 album_title = f"[bold yellow][b][u]{album['title']}[/u][/b][/bold yellow]"
-                                album_details = f"[dim white]Starring: {album['starring'] or ''}\nMusic: {album['music'] or ''}\nDirector: {album['director'] or ''}[/dim white]"
+                                album_details = f"[dim white]:busts_in_silhouette: Starring: {album['starring'] or ''}\n:musical_score: Music: {album['music'] or ''}\n:clapper: Director: {album['director'] or ''}[/dim white]"
                                 album_info = f"{album_title}\n{album_details}"
-                                table.add_row(str(idx), album_info, album["url"])
+                                table.add_row(f"[bold green]{idx}[/bold green]", album_info, f"[dim]{album['url']}[/dim]")
                             console.print(table)
                             console.print("[bold green]Enter album number(s) separated by comma to download, type 'all' to download all albums, or Esc to go back:[/bold green]")
                             try:
