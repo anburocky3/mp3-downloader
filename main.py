@@ -1,10 +1,28 @@
+import os
+
+from rich.console import Console
 from scraper.PlaywrightScraper import PlaywrightScraper
 from ui.menu import select_language
 
+console = Console()
+
 def print_banner():
-    print("╔════════════════════════════════════════╗")
-    print("║  🎵  𝙈𝙋𝟯 𝘿𝙤𝙬𝙣𝙡𝙤𝙖𝙙𝙚𝙧 in single click  🎵  ║")
-    print("╚════════════════════════════════════════╝\n")
+    os.system('cls' if os.name == 'nt' else 'clear')
+    banner_lines = [
+        ("#####  ######     #    ######  ######  ####### ######  ", "bold yellow"),
+        ("#     # #     #   # #   #     # #     # #       #     # ", "bold bright_yellow"),
+        ("#       #     #  #   #  #     # #     # #       #     # ", "bold orange3"),
+        ("#  #### ######  #     # ######  ######  #####   ######  ", "bold magenta"),
+        ("#     # #   #   ####### #     # #     # #       #   #   ", "bold blue"),
+        ("#     # #    #  #     # #     # #     # #       #    #  ", "bold cyan"),
+        ("#####  #     # #     # ######  ######  ####### #     # ", "bold green"),
+    ]
+    for line, style in banner_lines:
+        console.print(line, style=style)
+    console.print("[bold magenta]╔════════════════════════════════════════════════════════╗[/bold magenta]")
+    console.print("[bold white]║  🎺  1000+ mp3 in single click  | 😎  Anbuselvan Rocky   ║[/bold white]")
+    console.print("[bold magenta]╚════════════════════════════════════════════════════════╝\n[/bold magenta]")
+
 
 def main():
     print_banner()
@@ -16,4 +34,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

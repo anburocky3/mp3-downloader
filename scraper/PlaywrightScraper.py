@@ -16,11 +16,11 @@ class PlaywrightScraper:
 
     def get_html(self, url):
         self.page.goto(url, timeout=60000)
-        try:
-            self.page.wait_for_selector('div.sb.cen', timeout=20000)
-            time.sleep(3)
-        except Exception as e:
-            print(f"[DEBUG] .sb.cen not found: {e}")
+        # try:
+        #     self.page.wait_for_selector('div.sb.cen', timeout=20000)
+        #     time.sleep(3)
+        # except Exception as e:
+            # print(f"[DEBUG] .sb.cen not found: {e}")
         html = self.page.content()
         # print('[DEBUG] HTML after navigation:', html[:1000])
         return html

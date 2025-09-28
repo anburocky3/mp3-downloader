@@ -4,17 +4,16 @@ import readchar
 from scraper.album import get_trending_albums, download_album_songs
 from scraper.director import get_music_directors, get_director_albums
 import sys
-from scraper.download import download_song
 
 console = Console()
 languages = [
-    ("Tamil", "https://www.masstamilan.dev/"),
-    ("Hindi", "https://mp3bhai.com/"),
-    ("Telugu", "https://masstelugu.com/"),
-    ("Malayalam", "https://mp3chetta.com/"),
+    ("Tamil", "https://www.masstamilan.dev/", "masstamilan.dev"),
+    ("Hindi", "https://mp3bhai.com/", "mp3bhai.com"),
+    ("Telugu", "https://masstelugu.com/", "masstelugu.com"),
+    ("Malayalam", "https://mp3chetta.com/", "mp3chetta.com"),
 ]
 
-def select_tamil_option(scraper):
+def select_ui_option(scraper, base_url):
     tamil_options = [
         ("Trending Songs", "trending"),
         ("Songs by Music Directors", "directors"),
@@ -35,7 +34,7 @@ def select_tamil_option(scraper):
             selected = tamil_options[int(key)-1][1]
             console.print(f"\n[bold blue]You selected: {tamil_options[int(key)-1][0]}[/bold blue], please wait...")
             if selected == "trending":
-                albums = get_trending_albums(scraper)
+                albums = get_trending_albums(scraper, base_url)
                 if albums:
                     table = Table(title="Trending Albums", show_header=True, header_style="bold magenta")
                     table.add_column("No.", style="bold cyan")
@@ -50,11 +49,14 @@ def select_tamil_option(scraper):
                         return None
                     if key2 in map(str, range(1, len(albums)+1)):
                         album = albums[int(key2)-1]
-                        download_album_songs(scraper, album["url"], album["title"])
+                        download_album_songs(scraper, album["url"], album["title"], base_url=base_url)
                 else:
                     console.print("[bold red]No trending albums found.[/bold red]")
             elif selected == "directors":
-                directors = get_music_directors(scraper)
+                directors = get_music_directors(scraper, base_url)
+                if directors is None:
+                    console.print("[bold red]Director data not available.[/bold red]")
+                    return None
                 if directors:
                     table = Table(title="Music Directors", show_header=True, header_style="bold magenta")
                     table.add_column("No.", style="bold cyan")
@@ -75,7 +77,7 @@ def select_tamil_option(scraper):
                         key2 = input_str
                         console.print("[italic blue]Please wait while we fetch all the records... (May take time...)[/italic blue]")
                         director = directors[int(key2)-1]
-                        albums = get_director_albums(scraper, director["url"])
+                        albums = get_director_albums(scraper, director["url"], base_url=base_url)
                         if albums:
                             table = Table(title=f"Albums by {director['name']}", show_header=True, header_style="bold magenta")
                             table.add_column("No.", style="bold cyan")
@@ -88,7 +90,6 @@ def select_tamil_option(scraper):
                                 table.add_row(str(idx), album_info, album["url"])
                             console.print(table)
                             console.print("[bold green]Enter album number(s) separated by comma to download, type 'all' to download all albums, or Esc to go back:[/bold green]")
-                            import sys
                             try:
                                 input_str = console.input("[bold green]Your choice: [/bold green]")
                             except KeyboardInterrupt:
@@ -107,13 +108,12 @@ def select_tamil_option(scraper):
                                         idx = int(part)
                                         if 1 <= idx <= len(albums):
                                             selected_indices.append(idx)
-                            # Download selected albums inside director folder
                             import os
                             director_folder = os.path.join('downloaded', director['name'])
                             os.makedirs(director_folder, exist_ok=True)
                             for idx in selected_indices:
                                 album = albums[idx-1]
-                                download_album_songs(scraper, album["url"], album["title"], output_dir=director_folder)
+                                download_album_songs(scraper, album["url"], album["title"], output_dir=director_folder, base_url=base_url)
                         else:
                             console.print("[bold red]No albums found for this director.[/bold red]")
                 else:
@@ -122,13 +122,15 @@ def select_tamil_option(scraper):
         else:
             console.print("\n[bold red]Invalid selection. Please try again.[/bold red]")
 
+
 def select_language(scraper):
     while True:
         table = Table(title="Select Music Language", show_header=True, header_style="bold magenta")
         table.add_column("No.", style="bold cyan")
         table.add_column("Language", style="bold yellow")
-        for idx, (lang, _) in enumerate(languages, 1):
-            table.add_row(str(idx), lang)
+        table.add_column("Platforms")
+        for idx, (lang, url, name) in enumerate(languages, 1):
+            table.add_row(str(idx), lang, name)
         console.clear()
         console.print(table)
         console.print("[bold green]Enter the number of your choice:[/bold green] ", end="")
@@ -139,8 +141,8 @@ def select_language(scraper):
         if key in map(str, range(1, len(languages)+1)):
             lang, url = languages[int(key)-1]
             console.print(f"\n[bold blue] You selected {lang}. Opening platform: {url}[/bold blue]\n")
-            if lang == "Tamil":
-                select_tamil_option(scraper)
+            if lang == "Tamil" or lang == "Telugu" or lang == "Hindi" or lang == "Malayalam":
+                select_ui_option(scraper, url)
                 break
             else:
                 import webbrowser
