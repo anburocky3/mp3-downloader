@@ -22,8 +22,7 @@ class PlaywrightScraper:
         except Exception as e:
             print(f"[DEBUG] .sb.cen not found: {e}")
         html = self.page.content()
-        print(f"HTML GOT: {html}")
-        print('[DEBUG] HTML after navigation:', html[:1000])
+        # print('[DEBUG] HTML after navigation:', html[:1000])
         return html
 
     def get_cookies(self):

@@ -35,7 +35,8 @@ def get_trending_albums(scraper):
             })
     return albums
 
-def download_album_songs(scraper, album_url, album_name):
+def download_album_songs(scraper, album_url, album_name, output_dir=None):
+    import os
     base_url = "https://www.masstamilan.dev"
     full_url = base_url + album_url if not album_url.startswith("http") else album_url
     try:
@@ -56,7 +57,10 @@ def download_album_songs(scraper, album_url, album_name):
         album_dir_name = f"{album_name} - ({album_year})"
     else:
         album_dir_name = album_name
-    album_dir = os.path.join("downloaded", album_dir_name)
+    if output_dir:
+        album_dir = os.path.join(output_dir, album_dir_name)
+    else:
+        album_dir = os.path.join("downloaded", album_dir_name)
     os.makedirs(album_dir, exist_ok=True)
 
     song_links = []
