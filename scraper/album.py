@@ -7,8 +7,8 @@ from rich.text import Text
 
 console = Console()
 
-def get_trending_albums(scraper):
-    url = "https://www.masstamilan.dev/"
+def get_trending_albums(scraper, base_url):
+    url = base_url
     html = scraper.get_html(url)
     soup = BeautifulSoup(html, "html.parser")
     main_div = soup.find("div", class_="sb cen")
@@ -35,9 +35,10 @@ def get_trending_albums(scraper):
             })
     return albums
 
-def download_album_songs(scraper, album_url, album_name, output_dir=None):
+def download_album_songs(scraper, album_url, album_name, output_dir=None, base_url=None):
     import os
-    base_url = "https://www.masstamilan.dev"
+    if base_url is None:
+        base_url = "https://www.masstamilan.dev"
     full_url = base_url + album_url if not album_url.startswith("http") else album_url
     try:
         scraper.page.goto(full_url, timeout=60000)
