@@ -11,6 +11,14 @@ Download thousands of music files in single click!. Supporting Tamil, Telugu, Hi
   <img src="https://img.shields.io/github/last-commit/anburocky3/mp3-downloader/main?label=Last%20updated%20on" alt="Last updated on" />
 </p>
 
+## 🚀 Download the Mp3Downloader.zip file 
+For windows, just download the zip file and extract it. Run `MP3Downloader.exe` to start the application. 
+
+👉  **Download it here:**
+
+[![Download Latest Release](https://img.shields.io/github/v/release/anburocky3/mp3-downloader?label=Download%20Latest)](https://github.com/anburocky3/mp3-downloader/releases/latest)
+[![Windows EXE](https://img.shields.io/badge/Windows-EXE-blue?logo=windows)](https://github.com/anburocky3/mp3-downloader/releases/latest/download/mp3-downloader.exe)
+
 ### ✅ [Download this script](https://github.com/anburocky3/mp3-downloader/fork)
 
 > **Use this script with caution.** We don't support piracy and this project is completely for educational purposes only. Use it with care.🥰💖
@@ -77,13 +85,29 @@ Download thousands of music files in single click!. Supporting Tamil, Telugu, Hi
 
 17. Enjoy your music! 🎶
 
+## ⚙️ For Developers
+- Build the Windows EXE using PyInstaller:
+  ```bash
+  .\scripts\deploy.bat # Build, deploy and release the Windows EXE in zip format
+  .\scripts\build.bat  # Just build the Windows EXE
+  ```
+> when making changes increment the version code and update the changelog in `CHANGELOG.md`.
+
+
+## 🖥️ Supported Platforms
+- Windows (EXE available)
+- Linux, macOS (run with Python 3.10+)
+
+## 📑 Changelog
+See [CHANGELOG.md](CHANGELOG.md) for details.
+
 ## 🤝 Contributing
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 ---
 
-## Supporting platforms
+## Supporting downloading platforms
 1. Tamil MP3 (masstamilan.dev)
 2. Hindi MP3 (mp3bhai.com)
 3. Telugu MP3 (masstelugu.com)

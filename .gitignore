@@ -1,2 +1,11 @@
 downloaded/*
 .idea
+
+# Ignore build and release artifacts
+/dist/
+/build/
+*.spec
+*.zip
+*.exe
+__pycache__/
+!dist/**/*.zip
