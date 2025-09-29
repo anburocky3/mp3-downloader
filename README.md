@@ -17,7 +17,6 @@ For windows, just download the zip file and extract it. Run `MP3Downloader.exe` 
 👉  **Download it here:**
 
 [![Download Latest Release](https://img.shields.io/github/v/release/anburocky3/mp3-downloader?label=Download%20Latest)](https://github.com/anburocky3/mp3-downloader/releases/latest)
-[![Windows EXE](https://img.shields.io/badge/Windows-EXE-blue?logo=windows)](https://github.com/anburocky3/mp3-downloader/releases/latest/download/mp3-downloader.exe)
 
 ### ✅ [Download this script](https://github.com/anburocky3/mp3-downloader/fork)
 
