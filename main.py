@@ -1,3 +1,5 @@
+print('Please wait, waiting for the main menu to load...')
+
 from rich.console import Console
 from scraper.PlaywrightScraper import PlaywrightScraper
 from ui.menu import select_language
@@ -19,7 +21,7 @@ def print_banner():
     for line, style in banner_lines:
         console.print(line, style=style)
     console.print("[bold magenta]╔════════════════════════════════════════════════════════╗[/bold magenta]")
-    console.print("[bold white]║  🎺  1000+ mp3 in single click  | 😎  Anbuselvan Rocky   ║[/bold white]")
+    console.print("[bold white]║  🎺  1000+ mp3 in single click  | 😎  Anbuselvan Rocky  ║[/bold white]")
     console.print("[bold magenta]╚════════════════════════════════════════════════════════╝\n[/bold magenta]")
 
 

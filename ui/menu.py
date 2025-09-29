@@ -2,6 +2,7 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 import readchar
+from time import sleep
 
 from scraper.album import get_trending_albums, download_album_songs
 from scraper.director import get_music_directors, get_director_albums
@@ -20,10 +21,11 @@ languages = [
 
 def select_ui_option(scraper, base_url):
     tamil_options = [
-        ("🎵 Trending Songs", "trending"),
-        ("🎤 Songs by Music Directors", "directors"),
+        ("🎵  Trending Songs", "trending"),
+        ("🎤  Songs by Music Directors", "directors"),
     ]
     while True:
+        console.print("[bold yellow]Please wait...[/bold yellow]")
         clear_screen()
         table = Table(
             title="[bold magenta]How do you want to download?[/bold magenta]",
@@ -37,17 +39,24 @@ def select_ui_option(scraper, base_url):
         table.add_column("Option", style="bold yellow", justify="left", width=40)
         for idx, (opt, _) in enumerate(tamil_options, 1):
             table.add_row(f"[bold green]{idx}[/bold green]", f"{opt}")
+        table.add_row("[bold red]0[/bold red]", "[bold red]Exit[/bold red]")
         console.clear()
         console.print(table)
-        console.print("[bold green]Enter the number of your choice:[/bold green] ", end="")
+        console.print("[bold green]Enter the number of your choice (0 to exit, Esc to go back):[/bold green] ", end="")
         key = readchar.readkey()
         if key == readchar.key.ESC:
             return None
+        if key == "0":
+            console.print("[bold magenta]Good bye![/bold magenta]")
+            sys.exit(0)
         if key in map(str, range(1, len(tamil_options)+1)):
             selected = tamil_options[int(key)-1][1]
             console.print(f"\n[bold blue]You selected: {tamil_options[int(key)-1][0]}[/bold blue], please wait...\n")
             clear_screen()
+            console.print("[bold yellow]Please wait...[/bold yellow]")
             if selected == "trending":
+                console.print("[bold yellow]Please wait while we fetch trending albums...[/bold yellow]")
+                clear_screen()
                 albums = get_trending_albums(scraper, base_url)
                 if albums:
                     table = Table(
@@ -59,7 +68,7 @@ def select_ui_option(scraper, base_url):
                         title_justify="center"
                     )
                     table.add_column("No.", style="bold cyan", justify="center", width=6)
-                    table.add_column(":cd: Album", style="bold yellow", justify="left", width=40)
+                    table.add_column(":cd:  Album", style="bold yellow", justify="left", width=40)
                     table.add_column(":link: URL", style="bold green", justify="left", width=40)
                     for idx, album in enumerate(albums, 1):
                         table.add_row(f"[bold green]{idx}[/bold green]", f"[bold yellow]{album['title']}[/bold yellow]", f"[dim]{album['url']}[/dim]")
@@ -74,6 +83,8 @@ def select_ui_option(scraper, base_url):
                 else:
                     console.print("[bold red]No trending albums found.[/bold red]")
             elif selected == "directors":
+                console.print("[bold yellow]Please wait while we fetch music directors...[/bold yellow]")
+                clear_screen()
                 directors = get_music_directors(scraper, base_url)
                 if directors is None:
                     console.print("[bold red]Director data not available.[/bold red]")
@@ -162,19 +173,28 @@ def select_ui_option(scraper, base_url):
 
 def select_language(scraper):
     while True:
-        table = Table(title="Select Music Language", show_header=True, header_style="bold magenta")
-        table.add_column("No.", style="bold cyan")
-        table.add_column("Language", style="bold yellow")
-        table.add_column("Platforms")
+        table = Table(title="Select Music Language",
+                      show_header=True,
+                      header_style="bold magenta",
+                      box=box.ROUNDED,
+                      padding=(1, 2),
+                      title_justify="center")
+        table.add_column("No.", style="bold cyan", justify="center", width=6)
+        table.add_column("Language", style="bold yellow", width=40)
+        table.add_column("Platforms", width=40)
         for idx, (lang, url, name) in enumerate(languages, 1):
             table.add_row(str(idx), lang, name)
+        table.add_row("[bold red]0[/bold red]", "[bold red]Exit[/bold red]", "")
         console.clear()
         console.print(table)
-        console.print("[bold green]Enter the number of your choice:[/bold green] ", end="")
+        console.print("[bold green]Enter the number of your choice (0 to exit, Esc to go back):[/bold green] ", end="")
         key = readchar.readkey()
         if key == readchar.key.ESC:
-            console.print("\n[bold red]Exiting...[/bold red]")
+            console.print("\n[bold magenta]Going back...[/bold magenta]")
             break
+        if key == "0":
+            console.print("[bold magenta]Good bye![/bold magenta]")
+            sys.exit(0)
         if key in map(str, range(1, len(languages)+1)):
             lang, url, name = languages[int(key)-1]
             console.print(f"\n[bold blue] You selected {lang}. Opening platform: {url}[/bold blue]\n")
