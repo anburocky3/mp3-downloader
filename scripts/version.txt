@@ -10,9 +10,9 @@ VSVersionInfo(
         [
            StringStruct('CompanyName', 'Anbu Creations'),
            StringStruct('FileDescription', 'MP3 Downloader'),
-           StringStruct('FileVersion', '1.1.0'),
+           StringStruct('FileVersion', '1.2.0'),
            StringStruct('ProductName', 'MP3 Downloader'),
-           StringStruct('ProductVersion', '1.1.0')
+           StringStruct('ProductVersion', '1.2.0')
         ]
       )
     ]),

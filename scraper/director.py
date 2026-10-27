@@ -27,59 +27,47 @@ def get_music_directors(scraper, base_url):
 
 def get_director_albums(scraper, director_url, base_url):
     from urllib.parse import urljoin
+
     def parse_album_page(html):
-        from bs4 import NavigableString
         soup = BeautifulSoup(html, "html.parser")
         albums = []
-        bots_section = soup.find("section", class_="bots")
-        if not bots_section:
-            return []
-        gw_div = bots_section.find("div")
-        if not gw_div:
-            return []
-        gw_inner = gw_div.find("div", class_="gw")
-        if not gw_inner:
-            return []
-        for a_i in gw_inner.find_all("div", class_="a-i"):
+
+        for a_i in soup.select("div.a-i"):
             a_tag = a_i.find("a")
             if not a_tag:
                 continue
-            album_url = a_tag.get("href")
-            album_url = urljoin(base_url, album_url)
-            mw0_div = a_tag.find("div", class_="mw0")
-            album_title = None
-            starring = None
-            music = None
-            director = None
-            if mw0_div:
-                h2 = mw0_div.find("h2")
-                if h2:
-                    album_title = h2.text.strip()
-                p = mw0_div.find("p")
-                if p:
-                    for tag in p.contents:
-                        if tag.name == "b":
-                            label = tag.text.strip()
-                            value = tag.next_sibling
-                            # Sometimes value is a NavigableString, sometimes a Tag (e.g., <br>)
-                            if isinstance(value, NavigableString):
-                                value = value.strip()
-                            elif value:
-                                value = value.get_text(strip=True) if hasattr(value, 'get_text') else str(value).strip()
-                            else:
-                                value = ""
-                            if label == "Starring:":
-                                starring = value
-                            elif label == "Music:":
-                                music = value
-                            elif label == "Director:":
-                                director = value
+
+            info = a_tag.select_one("div.mw0")
+            if not info:
+                continue
+
+            title_tag = info.find("h2")
+            details = {
+                "Starring:": "",
+                "Music:": "",
+                "Director:": "",
+            }
+            details_tag = info.find("p")
+            if details_tag:
+                for label_tag in details_tag.find_all("b"):
+                    label = label_tag.get_text(strip=True)
+                    if label not in details:
+                        continue
+                    value_parts = []
+                    for sibling in label_tag.next_siblings:
+                        if getattr(sibling, "name", None) == "br":
+                            break
+                        text = sibling.get_text(" ", strip=True) if hasattr(sibling, "get_text") else str(sibling).strip()
+                        if text:
+                            value_parts.append(text)
+                    details[label] = " ".join(value_parts)
+
             albums.append({
-                "title": album_title,
-                "url": album_url,
-                "starring": starring,
-                "music": music,
-                "director": director
+                "title": title_tag.get_text(strip=True) if title_tag else "",
+                "url": urljoin(base_url, a_tag.get("href", "")),
+                "starring": details["Starring:"],
+                "music": details["Music:"],
+                "director": details["Director:"],
             })
         return albums
     # Helper to get all paginated URLs

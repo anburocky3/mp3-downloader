@@ -19,6 +19,93 @@ languages = [
     ("Malayalam", "https://mp3chetta.com", "mp3chetta.com"),
 ]
 
+
+def read_album_selection(prompt, album_count):
+    """Read album numbers and navigation commands from the terminal."""
+    while True:
+        try:
+            input_str = console.input(prompt).strip()
+        except KeyboardInterrupt:
+            console.print("\n[bold magenta]Good bye![/bold magenta]")
+            sys.exit(0)
+
+        command = input_str.lower()
+        if command in {"back", "b"}:
+            return "back"
+        if command in {"exit", "quit", "q", "0"}:
+            console.print("[bold magenta]Good bye![/bold magenta]")
+            sys.exit(0)
+        if command == "all":
+            return list(range(1, album_count + 1))
+        if command in {"!all", "!"}:
+            return list(range(1, album_count + 1))
+
+        if command.startswith("!"):
+            excluded = []
+            invalid_parts = []
+            for part in command[1:].split(","):
+                part = part.strip()
+                if part.isdigit() and 1 <= int(part) <= album_count:
+                    index = int(part)
+                    if index not in excluded:
+                        excluded.append(index)
+                else:
+                    invalid_parts.append(part or "!")
+            if not invalid_parts and excluded:
+                return [
+                    index for index in range(1, album_count + 1)
+                    if index not in excluded
+                ]
+            console.print(
+                f"[bold red]Invalid exclusion: {', '.join(invalid_parts or ['!'])}[/bold red]"
+            )
+            console.print(
+                "[dim]Examples: !3  |  !3,5  (download every album except those numbers)[/dim]"
+            )
+            continue
+
+        selected_indices = []
+        invalid_parts = []
+        for part in input_str.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            if part.isdigit() and 1 <= int(part) <= album_count:
+                index = int(part)
+                if index not in selected_indices:
+                    selected_indices.append(index)
+            else:
+                invalid_parts.append(part)
+
+        if selected_indices and not invalid_parts:
+            return selected_indices
+
+        if invalid_parts:
+            console.print(
+                f"[bold red]Invalid album selection: {', '.join(invalid_parts)}[/bold red]"
+            )
+        else:
+            console.print("[bold red]Enter at least one album number.[/bold red]")
+        console.print(
+            "[dim]Examples: 3  |  3, 5, 8  |  all  |  !all  |  back  |  exit[/dim]"
+        )
+
+
+def show_album_selection_help():
+    console.print(
+        "[bold green]Download options:[/bold green] "
+        "[cyan]number[/cyan] for one album, "
+        "[cyan]1,3,5[/cyan] for multiple, "
+        "[cyan]all[/cyan] for every album, "
+        "[cyan]!3[/cyan] or [cyan]!3,5[/cyan] to exclude albums."
+    )
+    console.print(
+        "[bold green]Navigation:[/bold green] "
+        "[cyan]back[/cyan]/[cyan]b[/cyan] to return, "
+        "[cyan]exit[/cyan]/[cyan]q[/cyan] to quit."
+    )
+
+
 def select_ui_option(scraper, base_url):
     tamil_options = [
         ("🎵  Trending Songs", "trending"),
@@ -42,9 +129,14 @@ def select_ui_option(scraper, base_url):
         table.add_row("[bold red]0[/bold red]", "[bold red]Exit[/bold red]")
         console.clear()
         console.print(table)
-        console.print("[bold green]Enter the number of your choice (0 to exit, Esc to go back):[/bold green] ", end="")
+        console.print(
+            "[bold green]Choose an option (0/exit to quit, Esc/back to return):[/bold green] ",
+            end="",
+        )
         key = readchar.readkey()
         if key == readchar.key.ESC:
+            return None
+        if key in {"b", "B"}:
             return None
         if key == "0":
             console.print("[bold magenta]Good bye![/bold magenta]")
@@ -73,13 +165,21 @@ def select_ui_option(scraper, base_url):
                     for idx, album in enumerate(albums, 1):
                         table.add_row(f"[bold green]{idx}[/bold green]", f"[bold yellow]{album['title']}[/bold yellow]", f"[dim]{album['url']}[/dim]")
                     console.print(table)
-                    console.print("[bold green]Enter album number to download all songs or Esc to go back:[/bold green] \n", end="")
-                    key2 = readchar.readkey()
-                    if key2 == readchar.key.ESC:
+                    show_album_selection_help()
+                    selected_indices = read_album_selection(
+                        "[bold green]Select album(s): [/bold green]",
+                        len(albums),
+                    )
+                    if selected_indices == "back":
                         return None
-                    if key2 in map(str, range(1, len(albums)+1)):
-                        album = albums[int(key2)-1]
-                        download_album_songs(scraper, album["url"], album["title"], base_url=base_url)
+                    for index in selected_indices:
+                        album = albums[index - 1]
+                        download_album_songs(
+                            scraper,
+                            album["url"],
+                            album["title"],
+                            base_url=base_url,
+                        )
                 else:
                     console.print("[bold red]No trending albums found.[/bold red]")
             elif selected == "directors":
@@ -136,25 +236,13 @@ def select_ui_option(scraper, base_url):
                                 album_info = f"{album_title}\n{album_details}"
                                 table.add_row(f"[bold green]{idx}[/bold green]", album_info, f"[dim]{album['url']}[/dim]")
                             console.print(table)
-                            console.print("[bold green]Enter album number(s) separated by comma to download, type 'all' to download all albums, or Esc to go back:[/bold green]")
-                            try:
-                                input_str = console.input("[bold green]Your choice: [/bold green]")
-                            except KeyboardInterrupt:
-                                console.print("\n[bold magenta]Good bye![/bold magenta]")
-                                sys.exit(0)
-                            if input_str.lower() == 'esc':
-                                console.print("[bold magenta]Good bye![/bold magenta]")
+                            show_album_selection_help()
+                            selected_indices = read_album_selection(
+                                "[bold green]Your choice: [/bold green]",
+                                len(albums),
+                            )
+                            if selected_indices == "back":
                                 return None
-                            if input_str.lower() == 'all':
-                                selected_indices = list(range(1, len(albums)+1))
-                            else:
-                                selected_indices = []
-                                for part in input_str.split(','):
-                                    part = part.strip()
-                                    if part.isdigit():
-                                        idx = int(part)
-                                        if 1 <= idx <= len(albums):
-                                            selected_indices.append(idx)
                             import os
                             director_folder = os.path.join('downloaded', sanitize_filename(director['name']))
                             os.makedirs(director_folder, exist_ok=True)
@@ -187,9 +275,12 @@ def select_language(scraper):
         table.add_row("[bold red]0[/bold red]", "[bold red]Exit[/bold red]", "")
         console.clear()
         console.print(table)
-        console.print("[bold green]Enter the number of your choice (0 to exit, Esc to go back):[/bold green] ", end="")
+        console.print(
+            "[bold green]Choose a language (0/exit to quit, Esc/back to return):[/bold green] ",
+            end="",
+        )
         key = readchar.readkey()
-        if key == readchar.key.ESC:
+        if key in {readchar.key.ESC, "b", "B"}:
             console.print("\n[bold magenta]Going back...[/bold magenta]")
             break
         if key == "0":
@@ -200,7 +291,7 @@ def select_language(scraper):
             console.print(f"\n[bold blue] You selected {lang}. Opening platform: {url}[/bold blue]\n")
             if lang == "Tamil" or lang == "Telugu" or lang == "Hindi" or lang == "Malayalam":
                 select_ui_option(scraper, url)
-                break
+                continue
             else:
                 import webbrowser
                 webbrowser.open(url)

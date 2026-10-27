@@ -11,7 +11,7 @@ echo [INFO] Installing Playwright Chromium browser
 playwright install chromium
 
 echo [INFO] Building with PyInstaller
-pyinstaller -F --onedir --name "MP3Downloader" --version-file=scripts/version.txt --icon=scripts/app.ico --copy-metadata readchar --distpath --noconfirm dist main.py
+pyinstaller --onedir --name "MP3Downloader" --version-file=scripts/version.txt --icon=scripts/app.ico --copy-metadata readchar --distpath dist --noconfirm main.py
 
 echo [SUCCESS] Build has completed. The executable is located in the dist folder.
 
